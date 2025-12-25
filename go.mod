@@ -1,4 +1,4 @@
-module github.com/xehrad/tempelates
+module github.com/xehrad/templates
 
 go 1.24.3
 
