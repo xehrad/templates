@@ -10,11 +10,9 @@ import (
 	"github.com/xehrad/git"
 )
 
-//go:embed starter/*/*
-var (
-	starterFS          embed.FS
-	ErrNotValidStarter = errors.New("Err Not Valid Starter")
-)
+//go:embed starter
+var starterFS embed.FS
+var ErrNotValidStarter = errors.New("Err Not Valid Starter")
 
 const (
 	_ROOT  = "starter"
@@ -44,7 +42,10 @@ func GetStarterFiles(name string) ([]git.FileNode, error) {
 		strContent := string(content)
 
 		// Remove the root prefix ("starter/nextjs") from the path so it sits at root of repo
-		relPath, _ := filepath.Rel(starterPath, path)
+		relPath, err := filepath.Rel(starterPath, path)
+		if err != nil {
+			return err
+		}
 
 		files = append(files, git.FileNode{
 			Path:    relPath,
