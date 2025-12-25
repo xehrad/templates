@@ -2,6 +2,8 @@ package templates
 
 import (
 	"embed"
+	"errors"
+	"fmt"
 	"io/fs"
 	"path/filepath"
 
@@ -9,19 +11,25 @@ import (
 )
 
 //go:embed starter/*/*
-var starterFS embed.FS
-
-type ProjectStarter string
-
-const (
-	Nextjs ProjectStarter = "nextjs-starter"
+var (
+	starterFS          embed.FS
+	ErrNotValidStarter = errors.New("Err Not Valid Starter")
 )
 
-// GetNextjsStarterFiles reads all files from the embedded FS and prepares them for Git upload
-func GetStarterFiles(root ProjectStarter) ([]git.FileNode, error) {
-	var files []git.FileNode
+const (
+	_ROOT  = "starter"
+	Nextjs = "nextjs"
+)
 
-	err := fs.WalkDir(starterFS, string(root), func(path string, d fs.DirEntry, err error) error {
+// GetStarterFiles reads all files from the embedded FS and prepares them for Git upload
+func GetStarterFiles(name string) ([]git.FileNode, error) {
+	if !isValidStarter(name) {
+		return nil, ErrNotValidStarter
+	}
+
+	var files []git.FileNode
+	starterPath := fmt.Sprintf("%s/%s", _ROOT, name)
+	err := fs.WalkDir(starterFS, starterPath, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -35,10 +43,8 @@ func GetStarterFiles(root ProjectStarter) ([]git.FileNode, error) {
 		}
 		strContent := string(content)
 
-		// Remove the root prefix ("nextjs-starter/") from the path so it sits at root of repo
-		relPath, _ := filepath.Rel(string(root), path)
-		// Convert Windows paths to Git standard (forward slash)
-		relPath = filepath.ToSlash(relPath)
+		// Remove the root prefix ("starter/nextjs") from the path so it sits at root of repo
+		relPath, _ := filepath.Rel(starterPath, path)
 
 		files = append(files, git.FileNode{
 			Path:    relPath,
@@ -49,4 +55,13 @@ func GetStarterFiles(root ProjectStarter) ([]git.FileNode, error) {
 	})
 
 	return files, err
+}
+
+func isValidStarter(name string) bool {
+	switch name {
+	case Nextjs:
+		return true
+	default:
+		return false
+	}
 }
