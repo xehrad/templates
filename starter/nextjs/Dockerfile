@@ -6,7 +6,7 @@ WORKDIR /app
 
 # Copy package files
 COPY package.json package-lock.json* ./
-RUN npm ci
+RUN npm install
 
 # Stage 2: Build the app
 FROM node:20-alpine AS builder
@@ -29,7 +29,7 @@ ENV NEXT_TELEMETRY_DISABLED 1
 ENV PORT 8080
 
 RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN adduser  --system --uid 1001 nextjs
 
 # Copy only necessary files from builder
 COPY --from=builder /app/public ./public
