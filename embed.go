@@ -10,7 +10,7 @@ import (
 	"github.com/xehrad/git"
 )
 
-//go:embed starter
+//go:embed all:starter
 var starterFS embed.FS
 var ErrNotValidStarter = errors.New("Err Not Valid Starter")
 
